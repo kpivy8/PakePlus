@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="initial-scale=1.0, maximum-scale=2.0, user-scalable=yes">
+    <meta name="viewport" content="width=device-width,height=device-height,inital-scale=1.0,maximum-scale=1.0,user-scalable=no;">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+   <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="format-detection" content="telephone=no">
+    <link rel="manifest" href="igc2kmz.webmanifest">
+    <link rel="icon" type="image/x-icon" href="./favicon.ico">
+    <title>igc2kmz</title>
+    <script src="./js/i2k.js"></script>
+    <style>
+      html, body {
+        font-family: sans-serif;
+        margin: 2px;
+        padding: 2px;
+        user-select: none;
+      }
+      label {
+        display: inline-block;
+        margin: 0px 10px 5px 0px;
+      }
+      h1 {
+        margin: 5px;
+      }
+      .converter {
+        width: 400px;
+        margin: 0;
+        padding: 0;
+
+
+      }
+      #buttons {
+        display: flex;
+        justify-content: flex-end
+      }
+      .button {
+        cursor: pointer;
+        border: solid 1px white;
+        color: white;
+        padding: 10px 30px;
+        text-align: center;
+        text-decoration: none;
+        font-size: 16px;
+        border-radius: 4px;
+        background-color: #008CBA;
+        height: 45px;
+      }
+      .button.small {
+        padding: 10px;
+      }
+      .button:hover {
+        border-color: #474747;
+      }
+      .button:disabled {
+        background: #dddddd;
+      }
+      .button:hover:disabled {
+        border-color: initial;
+      }
+      .red {
+        background-color: #df1313;
+      }
+      .green {
+        background-color: #4CAF50;
+      }
+      .overlay {
+        display: none;
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: #0000009e;
+      }
+      .popup {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        margin-left: -180px;
+        margin-top: -100px;
+        width:360px;
+        height:220px;
+        background-color: rgb(247, 247, 247);
+        border: solid 1px #cacaca;
+        border-radius: 5px;
+      }
+      .popup .popup_title {
+        width: 100%;
+        color:white;
+        font-weight: bold;
+        background-color: #4CAF50;
+        overflow: hidden;
+        padding: 2px 0;
+      }
+      .popup .popup_title span {
+        margin-left: 5px;
+      }
+      .popup .popup_title .btnclose {
+        float: right;
+        width : 20px;
+        height : 20px;
+        font-weight: bold;
+        padding: 0;
+        margin-right: 1px;
+      }
+      .popup .popup_content {
+        max-height: 165px;
+        overflow: hidden auto;
+        margin: 0 3px;
+      }
+      .popup .popup_content h4 {
+        margin: 1px 0;
+        font-size: 15px;
+        font-weight: 200;
+        letter-spacing: 0.2em;
+        /* background-color: #f1ffc6; */
+        color: #c30000;
+      }
+      .popup .popup_content h4:before{
+        content:'';
+        display:inline-block;
+        width:5px; height:100%;
+        border-bottom:1px solid #bbbbbb;
+      }
+      .popup .popup_content h4:after{
+        content:'';
+        display:inline-block;
+        width:100%; height:100%;
+        margin-right:-100%;
+        border-bottom:1px solid #bbbbbb;
+      }
+      .popup .popup_content label {
+        display: inline-block;
+        width: 175px;
+        white-space: nowrap;
+      }
+      @media (hover: hover) {
+        .popup .popup_content label:hover:after {
+          content: '\00a0\3f\00a0';/*'\00a0\1F6C8';*/
+          border: solid 1px #05009d;
+          background-color: #004883;
+          color:white;
+          margin-left: 5px;
+          border-radius: 5px;
+        }
+      }
+      .popup .popup_content input {
+        width: 60px;
+      }
+      .popup .popup_content span {
+        float: right;
+        margin-right: 50px;
+        padding:0 5px;
+        border-radius: 5px;
+        border: solid 1px #8a88cb;
+        background-color: #8ebbe1;
+        color:white;
+      }
+      .popup .popup_content span:hover {
+        border: solid 1px #05009d;
+        background-color: #004883;
+      }
+      .popup .buttons {
+        position: absolute;
+        right: 8px;
+        bottom: 5px;
+      }
+      .popup .jsonbuttons {
+        position: absolute;
+        left: 8px;
+        bottom: 5px;
+        text-align: center;
+      }
+      .popup .jsonbuttons a {
+        display : inline-block;
+        text-decoration: none;
+        height: 22px;
+        width: 22px;
+      }
+      .popup .jsonbuttons a:hover {
+        display : inline-block;
+        text-decoration: none;
+        background-color: rgb(0, 122, 204);
+        height: 22px;
+        width: 22px;
+      }
+      #buttons {
+        display: none;
+      }
+      #lblfile {
+        display: inline-block !important;
+        margin: 10px;
+        color: #ffafaf;
+        text-shadow: 0 0 2px #7ef504, 0 0 2px #6cd900;
+        font-size: 11pt;
+        max-width: 380px;
+        padding: 0 0 0 10px;
+        max-height: 170px;
+        overflow: hidden auto;
+      }
+      #lblfile li {
+        list-style: none;
+        color: #1d8802;
+      }
+      #lblfile li.task {
+        color: #005faf;
+      }
+      #lblfile li.photo {
+        color: #af0000;
+      }
+      #lblfile li:hover {
+        text-decoration: underline;
+      }
+      #dropbox {
+        border: 1px dashed brown;
+        border-width: thin;
+        background-color: #dfffa0;
+        text-align: center;
+        height : 180px;
+        width:400px;
+        display: table-cell;
+        vertical-align: middle;
+        cursor:pointer;
+      }
+      #nofile:hover {
+        text-decoration: underline;
+      }
+      #help {
+        background: transparent;
+        color: transparent;
+        font-size: 13pt;
+        visibility: hidden;
+        transition: all 1s linear;
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        padding: 0;
+        text-align: center;
+        user-select: none;
+        height: 40px;
+        display: flex;
+        justify-content: center;
+        flex-direction: column;
+      }
+      #help.visible {
+        background: #004883;
+        color:white;
+        visibility: visible;
+        transition: all 1s linear;
+        padding: 5px;
+      }
+      @media (max-width: 410px) {
+        .converter {
+          width: 100%;
+        }
+        #dropbox {
+          width: 100vw;
+          position: relative;
+          margin-left: -50vw;
+        }
+      }
+      #footer {
+        font-size: 8pt;
+        text-align: center;
+        margin: 20px 0;
+        color: #bababa;
+      }
+      #footer a, a:visited {
+        color: #9f9f9f;
+      }
+      #footer a:hover {
+        color: #dadada;
+      }
+    </style>
+
+    <script>
+const default_filename = "track$i.igc";
+var igccontent = [];
+var filename = [];
+var taskcontent = '';
+var taskfilename = '';
+var photos = [];
+var nbrfiles = 0;
+var i2koptions = {};
+var helptimer = null;
+var useSW = true;
+
+function convertigc() {
+  if (window.convertingigc) return;
+  window.convertingigc = true;
+  let allbtns = [...document.querySelectorAll('.button')];
+  allbtns.forEach(btn => btn.disabled = true);
+  igc2kmz(igccontent, filename, taskcontent, photos, i2koptions).catch(err => {
+    alert(err);
+    throw err;
+  }).finally(n => {
+    window.convertingigc = false;
+    allbtns.forEach(btn => btn.disabled = false);
+  });
+}
+function $(id) { return document.getElementById(id); }
+function isTouchDevice() {
+  return (('ontouchstart' in window) ||
+     (navigator.maxTouchPoints > 0) ||
+     (navigator.msMaxTouchPoints > 0));
+}
+// Function to download data to a file
+function download(data, filename, type) {
+  var file = new Blob([data], {type: type});
+  if (window.navigator.msSaveOrOpenBlob) // IE10+
+    window.navigator.msSaveOrOpenBlob(file, filename);
+  else { // Others
+    var a = document.createElement("a"),
+        url = URL.createObjectURL(file);
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(function() {
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+    }, 0);
+  }
+}
+let optactions = {
+  'number': { 'get': ipt => parseFloat(ipt.value), 'set': (ipt, v) => ipt.value = v, 'valid': (v,o) => !isNaN(v) && (!Array.isArray(o[5]) || ((typeof o[5][0] !== 'number' || o[5][0] <= v) && (typeof o[5][1] !== 'number' || o[5][1] >= v))) },
+  'checkbox': { 'get': ipt => ipt.checked, 'set': (ipt, v) => ipt.checked = !!v, 'valid': () => true },
+  'color': { 'get': ipt => ipt.value, 'set': (ipt, v) => ipt.value = v, 'valid': () => true },
+  'select': { 'get': ipt => ipt.value, 'set': (ipt, v) => ipt.value = v, 'valid': (v,o) => (!Array.isArray(o[5]) || o[5].indexOf(v)>-1) },
+}
+function getConfig() {
+  let config = DEFAULT_IGC2KMZ_CONFIGURATION;
+  let extraconfig = {};
+  let warns = [];
+  [...document.querySelectorAll('.popup .popup_content input, .popup .popup_content select')].forEach(ipt => {
+    let id = ipt.id;
+    if (!id.startsWith('opt_')) return;
+    id = id.substring(4);
+    let type = id.substring(0, id.indexOf('_'));
+    id = id.substring(id.indexOf('_')+1);
+    let opt = options.find(o => o[1] == id);
+    if (!opt) {
+      if (warns.indexOf(id) < 0) warns.push(id);
+      console.warn(`unknown field '${id}'`);
+      return;
+    }
+    let value = optactions[type].get(ipt);
+    if (!optactions[type].valid(value, opt)) {
+      if (warns.indexOf(id) < 0) warns.push(id);
+      console.warn(`invalid value for field '${id}', defaulted to '${config[id]}'`);
+      optactions[type].set(ipt, config[id]);
+    } else {
+      extraconfig[id] = value;
+    }
+  });
+  if (warns.length>0) alert('some invalid values found (set to default), check console\nFields are : ' + warns.join(', '));
+  config = {...config, ...extraconfig};
+  return config;
+}
+function setConfig(config) {
+  for (let key in config) {
+    let opt = options.find(o => o[1] == key);
+    if (!opt) continue;
+    let id = `opt_${opt[2]}_${opt[1]}`;
+    optactions[opt[2]].set($(id), config[key]);
+  }
+}
+function defaultConf() {
+  setConfig(DEFAULT_IGC2KMZ_CONFIGURATION);
+}
+function saveJSON() {
+  let config = getConfig();
+  download(JSON.stringify(config), 'igc2kmz_config.json', 'application/json');
+}
+function loadJSON() {
+  const event = new MouseEvent('click', { view: window, bubbles: true, cancelable: true });
+  jsonselector.dispatchEvent(event);
+  jsonselector.value = null;
+}
+function loadJSONRes(jsonconf) {
+  setConfig(JSON.parse(jsonconf));
+}
+function showOptions() {
+  popup_overlay.style.display = 'initial';
+}
+function closeOptions(save) {
+  if (save) {
+    i2koptions = getConfig();
+    try{ localStorage.setItem('options', JSON.stringify(i2koptions)); }catch {}
+  } else {
+    let config = getConfig();
+    if (JSON.stringify(config) != JSON.stringify(i2koptions)) {
+      if (!confirm('Warning, current configuration changes will be lost, are you sure?')) return;
+      setConfig(i2koptions);
+    }
+  }
+  popup_overlay.style.display = 'none';
+}
+function loadfile(file, name, json) {
+  json = json === true;
+  name = typeof name === 'string' && name.length > 0 ? name.split('\\').pop() : default_filename.replace('$i', nbrfiles+1);
+  const reader = new FileReader();
+  reader.addEventListener('load', (event) => {
+    let filesize = 0;
+    if (json) {
+      let textresult = (new TextDecoder()).decode(reader.result);
+      loadJSONRes(textresult);
+    } else {
+      let ext = name.trim().toLowerCase();
+      let idx = ext.lastIndexOf('.');
+      if (idx > -1) {
+        ext = ext.substring(idx+1);
+      } else ext = '';
+      if (['xctsk'].includes(ext)) {
+        let textresult = (new TextDecoder()).decode(reader.result);
+        taskcontent = textresult;
+        taskfilename = name;
+      } else if (['jpg','jpeg','png','gif','tiff','tif','webp','bmp'].includes(ext)) {
+        photos.push([name, reader.result]);
+      } else {
+        let textresult = (new TextDecoder()).decode(reader.result);
+        if (igccontent.indexOf(textresult) > -1) {
+          return;
+        }
+        igccontent.push(textresult);
+        filename.push(name);
+      }
+      nbrfiles++;
+      updateListFiles();
+      btnConvert.style.display = 'initial';
+      btnClear.style.display = 'initial';
+    }
+  });
+  reader.readAsArrayBuffer(file);
+}
+function dragenter(e) {
+  e.stopPropagation();
+  e.preventDefault();
+  e.srcElement.style.backgroundColor = '#a0ffdf';
+}
+function dragleave(e) {
+  e.srcElement.style.backgroundColor = '#dfffa0';
+}
+function dragover(e) {
+  e.stopPropagation();
+  e.preventDefault();
+}
+function drop(e) {
+  e.stopPropagation();
+  e.preventDefault();
+  e.srcElement.style.backgroundColor = '#dfffa0';
+
+  let dt = e.dataTransfer;
+  let files = dt.files;
+  for (let i=0; i<files.length; i++) {
+    loadfile(files[i], files[i].name);
+  }
+  fileselector.value = null;
+}
+function selectFile() {
+  const event = new MouseEvent('click', { view: window, bubbles: true, cancelable: true });
+  fileselector.dispatchEvent(event);
+  fileselector.value = null;
+}
+function clearFiles() {
+  igccontent = [];
+  photos = [];
+  filename = [];
+  taskcontent = '';
+  taskfilename = '';
+  nbrfiles = 0;
+  btnConvert.style.display = 'none';
+  btnClear.style.display = 'none';
+  updateListFiles();
+}
+function updateListFiles() {
+  let filesnames = filename.map(f => '<li class="flight">'+f+'</li>');
+  if (taskfilename.trim().length > 0) {
+    filesnames.push('<li class="task">'+taskfilename+'</li>')
+  }
+  if (photos.length > 0) {
+    filesnames.push(...photos.map(f => '<li class="photo">'+f[0]+'</li>'))
+  }
+  nofile.style.display = (filesnames.length > 0) ? 'none':'initial';
+  lblfile.style.display = (filesnames.length > 0) ? 'initial':'none';
+  lblfile.innerHTML = filesnames.join('');
+}
+function showHelp(text) {
+  if (helptimer) {
+    window.clearTimeout(helptimer);
+  }
+  help.innerHTML = text;
+  help.classList.add("visible");
+  helptimer = window.setTimeout(() => { helptimer = null; help.classList.remove("visible"); }, 3500);
+}
+function buildOptions() {
+  optgroups = optgroups.reverse();
+  options.sort((a,b) => optgroups.indexOf(b[0])-optgroups.indexOf(a[0]));
+  let curgrp = null, node = null, childnode = null, id = null;
+  options.forEach(opt => {
+    let pc = document.querySelector('.popup_content');
+    if (curgrp != opt[0]) {
+      curgrp = opt[0];
+      node = document.createElement('h4');
+      node.append(curgrp);
+      pc.appendChild(node);
+    }
+    id = `opt_${opt[2]}_${opt[1]}`;
+    node = document.createElement('label');
+    node.setAttribute('for', id);
+    node.setAttribute('title', opt[4]);
+    node.append(opt[3]);
+    pc.appendChild(node);
+    if (opt[2]!='select') {
+      node = document.createElement('input');
+    } else {
+      node = document.createElement('select');
+    }
+    node.setAttribute('id', id);
+    node.setAttribute('type', opt[2]);
+    node.setAttribute('title', opt[4]);
+    if (opt.length > 5 && Array.isArray(opt[5])) {
+      if (opt[2]=='number') {
+        if (typeof opt[5][0] === 'number') node.setAttribute('min', opt[5][0]);
+        if (typeof opt[5][1] === 'number') node.setAttribute('max', opt[5][1]);
+      } else if (opt[2]=='select') {
+        opt[5].forEach(val => {
+          childnode = document.createElement('option');
+          childnode.setAttribute('value', val);
+          childnode.append(val);
+          node.appendChild(childnode);
+        });
+      }
+    }
+    pc.appendChild(node);
+    pc.appendChild(document.createElement('br'));
+  });
+}
+window.onload = function() {
+  window.fileselector = $('file-selector');
+  window.jsonselector = $('json-selector');
+  window.dropbox = $("dropbox");
+  window.lblfile = $("lblfile");
+  window.btnConvert = $("btnConvert");
+  window.btnClear = $("btnClear");
+  window.nofile = $("nofile");
+  window.popup_overlay = $("popup_overlay");
+  window.popup_options = $("popup_options");
+  window.help = $("help");
+  updateListFiles();
+
+  dropbox.addEventListener("dragenter", dragenter, false);
+  dropbox.addEventListener("dragleave", dragleave, false);
+  dropbox.addEventListener("dragover", dragover, false);
+  dropbox.addEventListener("drop", drop, false);
+  fileselector.addEventListener('change', (event) => {
+    const files = event.target.files;
+    if (files.length <= 0) return;
+    for (let i=0; i<files.length; i++) {
+      loadfile(files.item(i), files.item(i).name);
+    }
+    fileselector.value = null;
+  });
+  jsonselector.addEventListener('change', (event) => {
+    const files = event.target.files;
+    if (files.length < 1) return;
+    let file = files.item(0);
+    loadfile(file, file.name, true);
+    fileselector.value = null;
+  });
+  popup_overlay.addEventListener('click', e => {
+    closeOptions();
+  });
+  popup_options.addEventListener('click', e => {
+    e.stopPropagation();
+  });
+  document.addEventListener('keydown', e => {
+    if (popup_overlay.style.display == 'none') return;
+    e = e || window.event;
+    var isEscape = false;
+    if ("key" in e) {
+        isEscape = (e.key === "Escape" || e.key === "Esc");
+    } else {
+        isEscape = (e.keyCode === 27);
+    }
+    if (isEscape) {
+      closeOptions();
+    }
+  });
+  buildOptions();
+  let default_config = DEFAULT_IGC2KMZ_CONFIGURATION;
+  try {
+    let config = JSON.parse(localStorage.getItem('options'));
+    // suppression des clées inexistantes dans la config
+    // (évite les messages de warning à la sortie sans sauver de la fenêtre d'options lorsqu'un paramètre a été supprimé d'une version)
+    Object.keys(config).filter(k => !options.some(o => o[1] == k)).forEach(k => delete config[k]);
+    if (typeof config === 'object' && typeof config.tz_offset === 'number') {
+      default_config = {...default_config, ...config};
+    }
+  } catch {}
+  i2koptions = default_config;
+  setConfig(default_config);
+  if (isTouchDevice()) {
+    [...document.querySelectorAll('.popup .popup_content input, .popup .popup_content select')].forEach(inpt => {
+      let title = inpt.previousElementSibling.title;
+      if (typeof title !== 'string' || title.trim().length <= 0) return;
+      let span = document.createElement("span");
+      span.appendChild(document.createTextNode("?"));
+      span.setAttribute('title', title);
+      span.addEventListener('click', e => {
+        showHelp(e.srcElement.title);
+      });
+      inpt.after(span);
+    });
+  }
+  let build_date = IGC2KMZ_BUILDDATE;
+  $('buttons').style.display = 'flex';
+  $('version').innerHTML = IGC2KMZ_VERSION;
+  $('build_year').innerHTML = build_date.getFullYear();
+  let fbdate = build_date.toISOString();
+  fbdate = `${fbdate.substring(0, 10)} ${fbdate.substring(11,19)}`;
+  $('version').title = `built on ${fbdate} (UTC)`;
+}
+let optgroups = ['Global', 'IGC', 'Animation', 'Miscellaneous', 'Score', 'Debug'];
+let options = [
+  //   0         1       2     3     4     5[0]    5[1]
+  // GROUP, FIELDNAME, TYPE, LABEL, HELP, [ MIN,   MAX ]
+  ['Global', 'tz_offset', 'number', '时区偏移', 'Shift each record from offset, in hours', [-12, 12]],
+  ['Global', 'same_start', 'checkbox', 'Align launch time', 'Apply first flight\'s launch time to subsequent flights (flight comparison)'],
+  ['IGC', 'pressure_altitude', 'checkbox', '使用气压高度', 'Use barometric altitude (if available) instead of GPS'],
+  ['IGC', 'qnh', 'number', 'QNH', 'QNH for barometric altitude correction (if used, cf "use pressure altitude")'],
+  ['Animation', 'anim_tail', 'checkbox', 'Show tail', 'Show colored tail following paraglider\'s path'],
+  ['Animation', 'anim_tail_duration', 'number', 'Tail duration', 'Length in seconds for the colored tail. -1 for infinity (till launch)', [0]],
+  ['Animation', 'anim_tail_color', 'color', 'Tail color', 'Color of the tail following paraglider\'s path'],
+  ['Animation', 'anim_tail_use_pilot_color', 'checkbox', 'Use pilot name color', 'Multiple flights : use pilot\s name color for tail\'s color (override \'tail color\')'],
+  ['Miscellaneous', 'solid_color', 'color', 'Solid color', 'Solid track color'],
+  ['Miscellaneous', 'color_use_pilot_color', 'checkbox', 'Use pilot name color', 'Use pilot\s name color for solid color (override \'solid color\' if multiple flights)'],
+  ['Miscellaneous', 'extrude_color', 'color', 'Extrude color', 'Color of the extruded path (solid track)'],
+  ['Score', 'xc_score', 'checkbox', 'Score flights', 'Score distance/circuit of flights'],
+  ['Score', 'xc_score_rules', 'select', 'Scoring rules', 'Scoring rules', ['FFVL', 'XContest', 'FAI', 'FAI-Cylinders', 'FAI-OAR', 'FAI-OAR2', 'XCLeague']],
+  ['Score', 'xc_score_maxtime', 'number', 'Max timeout', 'Maximum time in seconds before stop scoring', [0]],
+  ['Debug', 'dbg_serialize', 'checkbox', 'Serialize to console', 'Serialize KML to console after conversion'],
+];
+
+// Registering Service Worker
+if (useSW && 'serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/igc2kmz/sw.js');
+}
+    </script>
+  </head>
+<body>
+  <div class="converter">
+    <h1>IGC转换成kmz工具</h1>
+    <input type="file" id="file-selector" onclick="this.value=null;" accept=".igc,.txt,.xctsk,.jpg,.gif" multiple style="display:none;">
+    <div id="dropbox" onclick="selectFile();">
+      <div id="nofile">拖放 .IGC/task/image 文件到这儿<BR>或单击选择文件</div>
+      <ul id="lblfile" title="单击添加文件"></ul>
+    </div>
+    <div id="buttons">
+      <input id="btnOptions" type="button" class="button small green" title="配置" onclick="showOptions()" value="&#x1F527;">
+      <input id="btnClear" type="button" class="button red" title="clear current files" onclick="clearFiles()" value="清空" style="display:none;">
+      <input id="btnConvert" type="button" class="button" title="convert selected files" onclick="convertigc()" value="转换" style="display:none;">
+    </div>
+  <div id="footer">igc2kmz version <span id="version">?.?.?</span> copyright <a href="https://github.com/igc2kmz">tto</a> <span id="build_year">2023</span></div>
+  </div>
+  <div id="popup_overlay" class="overlay">
+    <div id="popup_options" class="popup">
+      <div class="popup_title">
+        <span><small>&#x1F527;&nbsp;</small>options</span>
+        <input type="button" value="X" class="btnclose" onclick="closeOptions()">
+      </div>
+      <div class="popup_content"></div>
+      <div class="jsonbuttons">
+        <input type="file" id="json-selector" onclick="this.value=null;" accept=".json" style="display:none;">
+        <a href="#" title="reset to default configuration" onclick="defaultConf()">&#x1F4C4;</a>
+        <a href="#" title="load conf from file" onclick="loadJSON()">&#x1F4C2;</a>
+        <a href="#" title="save conf to file" onclick="saveJSON()">&#x1F4BE;</a>
+      </div>
+      <div class="buttons">
+        <input type="button" value="cancel" onclick="closeOptions()">
+        <input type="button" value="save" onclick="closeOptions(true)">
+      </div>
+    </div>
+  </div>
+  <div id="help"></div>
+</body>
+</html>
