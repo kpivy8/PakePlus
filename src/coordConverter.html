@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>经纬度格式转换器</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .input-group {
+            margin-bottom: 20px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .input-group h3 {
+            margin-top: 0;
+            color: #666;
+        }
+        .input-field {
+            width: 100%;
+            padding: 8px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            margin-top: 5px;
+        }
+        .hint {
+            font-size: 14px;
+            color: #666;
+            margin-top: 5px;
+        }
+        .error {
+            color: #dc3545;
+            font-size: 14px;
+            margin-top: 5px;
+            display: none;
+        }
+        .sub-input {
+            margin-top: 10px;
+        }
+        .sub-input-label {
+            font-weight: 500;
+            color: #555;
+            margin-bottom: 5px;
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>经纬度格式转换器</h1>
+        
+        <div class="input-group">
+            <h3>十进制度数格式 (DD)</h3>
+            <div class="sub-input">
+                <div class="sub-input-label">带方向格式</div>
+                <input type="text" id="ddInputDir" class="input-field" placeholder="示例: 37.470000° N, 120.377800° E">
+                <div class="hint">格式: 度数° 方向, 度数° 方向</div>
+                <div class="error" id="ddErrorDir"></div>
+            </div>
+            <div class="sub-input">
+                <div class="sub-input-label">正负号格式</div>
+                <input type="text" id="ddInputSign" class="input-field" placeholder="示例: +32.30642, -122.61458">
+                <div class="hint">格式: +/-度数, +/-度数</div>
+                <div class="error" id="ddErrorSign"></div>
+            </div>
+        </div>
+
+        <div class="input-group">
+            <h3>度分秒格式 (DMS)</h3>
+            <input type="text" id="dmsInput" class="input-field" placeholder="例如: 39°54'15&quot;N, 116°24'27&quot;E">
+            <div class="hint">格式: 度°分'秒"方向, 度°分'秒"方向</div>
+            <div class="error" id="dmsError"></div>
+        </div>
+
+        <div class="input-group">
+            <h3>度分格式 (DDM)</h3>
+            <input type="text" id="ddmInput" class="input-field" placeholder="例如: 39°54.25'N, 116°24.45'E">
+            <div class="hint">格式: 度°分.小数'方向, 度°分.小数'方向</div>
+            <div class="error" id="ddmError"></div>
+        </div>
+    </div>
+
+    <script>
+        // 保持原有的转换函数不变
+        function ddToDMS(dd) {
+            const dir = dd >= 0 ? 1 : -1;
+            dd = Math.abs(dd);
+            const deg = Math.floor(dd);
+            const minTotal = (dd - deg) * 60;
+            const min = Math.floor(minTotal);
+            const sec = Math.round((minTotal - min) * 60 * 100) / 100;
+            return { deg, min, sec, dir };
+        }
+
+        function ddToDDM(dd) {
+            const dir = dd >= 0 ? 1 : -1;
+            dd = Math.abs(dd);
+            const deg = Math.floor(dd);
+            const min = Math.round((dd - deg) * 60 * 1000) / 1000;
+            return { deg, min, dir };
+        }
+
+        function dmsToDd(deg, min, sec, dir) {
+            let dd = Number(deg) + Number(min)/60 + Number(sec)/3600;
+            return dir === 'S' || dir === 'W' ? -dd : dd;
+        }
+
+        function ddmToDd(deg, min, dir) {
+            let dd = Number(deg) + Number(min)/60;
+            return dir === 'S' || dir === 'W' ? -dd : dd;
+        }
+
+        function formatDMS(dms, isLat) {
+            const dir = dms.dir >= 0 ? (isLat ? 'N' : 'E') : (isLat ? 'S' : 'W');
+            return `${Math.abs(dms.deg)}°${dms.min}'${dms.sec.toFixed(2)}"${dir}`;
+        }
+
+        function formatDDM(ddm, isLat) {
+            const dir = ddm.dir >= 0 ? (isLat ? 'N' : 'E') : (isLat ? 'S' : 'W');
+            return `${Math.abs(ddm.deg)}°${ddm.min.toFixed(3)}'${dir}`;
+        }
+
+        // Parse DD format with direction
+        function parseDDDir(input) {
+            const pattern = /^([\d.]+)°\s*([NS])\s*,\s*([\d.]+)°\s*([EW])$/i;
+            const match = input.trim().match(pattern);
+            if (match) {
+                const lat = parseFloat(match[1]) * (match[2].toUpperCase() === 'N' ? 1 : -1);
+                const lng = parseFloat(match[3]) * (match[4].toUpperCase() === 'E' ? 1 : -1);
+                
+                if (isValidCoords(lat, lng)) {
+                    return { lat, lng };
+                }
+            }
+            return null;
+        }
+
+        // Parse DD format with signs
+        function parseDDSign(input) {
+            const pattern = /^([+-]?[\d.]+)\s*,\s*([+-]?[\d.]+)$/;
+            const match = input.trim().match(pattern);
+            if (match) {
+                const lat = parseFloat(match[1]);
+                const lng = parseFloat(match[2]);
+                
+                if (isValidCoords(lat, lng)) {
+                    return { lat, lng };
+                }
+            }
+            return null;
+        }
+
+        function isValidCoords(lat, lng) {
+            if (isNaN(lat) || isNaN(lng)) return false;
+            if (lat < -90 || lat > 90) return false;
+            if (lng < -180 || lng > 180) return false;
+            return true;
+        }
+
+        function parseDMS(input) {
+            const pattern = /(\d+)°(\d+)'([\d.]+)"([NSEW])/g;
+            const matches = [...input.matchAll(pattern)];
+            
+            if (matches.length !== 2) return null;
+            
+            try {
+                const lat = dmsToDd(
+                    matches[0][1],
+                    matches[0][2],
+                    matches[0][3],
+                    matches[0][4]
+                );
+                
+                const lng = dmsToDd(
+                    matches[1][1],
+                    matches[1][2],
+                    matches[1][3],
+                    matches[1][4]
+                );
+                
+                if (!isValidCoords(lat, lng)) return null;
+                return { lat, lng };
+            } catch (e) {
+                return null;
+            }
+        }
+
+        function parseDDM(input) {
+            const pattern = /(\d+)°([\d.]+)'([NSEW])/g;
+            const matches = [...input.matchAll(pattern)];
+            
+            if (matches.length !== 2) return null;
+            
+            try {
+                const lat = ddmToDd(
+                    matches[0][1],
+                    matches[0][2],
+                    matches[0][3]
+                );
+                
+                const lng = ddmToDd(
+                    matches[1][1],
+                    matches[1][2],
+                    matches[1][3]
+                );
+                
+                if (!isValidCoords(lat, lng)) return null;
+                return { lat, lng };
+            } catch (e) {
+                return null;
+            }
+        }
+
+        function formatDDWithDir(coords) {
+            const { lat, lng } = coords;
+            const latDir = lat >= 0 ? 'N' : 'S';
+            const lngDir = lng >= 0 ? 'E' : 'W';
+            return `${Math.abs(lat).toFixed(6)}° ${latDir}, ${Math.abs(lng).toFixed(6)}° ${lngDir}`;
+        }
+
+        function formatDDWithSign(coords) {
+            const { lat, lng } = coords;
+            return `${lat >= 0 ? '' : '-'}${Math.abs(lat).toFixed(6)}, ${lng >= 0 ? '' : '-'}${Math.abs(lng).toFixed(6)}`;
+        }
+
+        function updateInputs(coords, sourceId) {
+            if (!coords) return;
+
+            const { lat, lng } = coords;
+            
+            if (sourceId !== 'ddInputDir') {
+                document.getElementById('ddInputDir').value = formatDDWithDir(coords);
+            }
+            
+            if (sourceId !== 'ddInputSign') {
+                document.getElementById('ddInputSign').value = formatDDWithSign(coords);
+            }
+            
+            if (sourceId !== 'dmsInput') {
+                const latDMS = ddToDMS(lat);
+                const lngDMS = ddToDMS(lng);
+                document.getElementById('dmsInput').value = `${formatDMS(latDMS, true)}, ${formatDMS(lngDMS, false)}`;
+            }
+            
+            if (sourceId !== 'ddmInput') {
+                const latDDM = ddToDDM(lat);
+                const lngDDM = ddToDDM(lng);
+                document.getElementById('ddmInput').value = `${formatDDM(latDDM, true)}, ${formatDDM(lngDDM, false)}`;
+            }
+
+            // Clear all errors
+            document.querySelectorAll('.error').forEach(el => el.style.display = 'none');
+        }
+
+        // Event listeners for both DD input formats
+        document.getElementById('ddInputDir').addEventListener('input', function(e) {
+            const coords = parseDDDir(e.target.value);
+            if (coords) {
+                updateInputs(coords, 'ddInputDir');
+                document.getElementById('ddErrorDir').style.display = 'none';
+            } else {
+                document.getElementById('ddErrorDir').textContent = '格式无效';
+                document.getElementById('ddErrorDir').style.display = 'block';
+            }
+        });
+
+        document.getElementById('ddInputSign').addEventListener('input', function(e) {
+            const coords = parseDDSign(e.target.value);
+            if (coords) {
+                updateInputs(coords, 'ddInputSign');
+                document.getElementById('ddErrorSign').style.display = 'none';
+            } else {
+                document.getElementById('ddErrorSign').textContent = '格式无效';
+                document.getElementById('ddErrorSign').style.display = 'block';
+            }
+        });
+
+        document.getElementById('dmsInput').addEventListener('input', function(e) {
+            const coords = parseDMS(e.target.value);
+            if (coords) {
+                updateInputs(coords, 'dmsInput');
+                document.getElementById('dmsError').style.display = 'none';
+            } else {
+                document.getElementById('dmsError').textContent = '格式无效';
+                document.getElementById('dmsError').style.display = 'block';
+            }
+        });
+
+        document.getElementById('ddmInput').addEventListener('input', function(e) {
+            const coords = parseDDM(e.target.value);
+            if (coords) {
+                updateInputs(coords, 'ddmInput');
+                document.getElementById('ddmError').style.display = 'none';
+            } else {
+                document.getElementById('ddmError').textContent = '格式无效';
+                document.getElementById('ddmError').style.display = 'block';
+            }
+        });
+    </script>
+</body>
+</html>
