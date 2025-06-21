@@ -1,0 +1,225 @@
+<!doctype html>
+<html lang="zh-CN">
+
+<head>
+    <!-- 必须的 meta 标签 -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap 的 CSS 文件 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    <title>自用gps工具</title>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-ygbV9kiqUc6oa4msXn9868pTtWMgiQaeYH7/t7LECLbyPA2x65Kgf80OJFdroafW"
+        crossorigin="anonymous"></script>
+</head>
+
+<body>
+    <div class="container">
+        <figure class="text-center">
+            <blockquote class="blockquote">
+                <p>
+                <h1 class="text-center">gps位置高德工具</h1>
+                </p>
+            </blockquote>
+            <figcaption class="blockquote-footer">
+                获取gps依赖浏览器api，不一定准确</cite>
+            </figcaption>
+        </figure>
+
+        <div class="input-group mb-3">
+            <input type="text" class="form-control" placeholder="经度(小数点格式)" aria-label="lat"
+                aria-describedby="basic-addon1" id="lat" value="39.895723">
+        </div>
+        <div>
+            <input type="text" class="form-control" placeholder="纬度(小数点格式)" aria-label="lon"
+                aria-describedby="basic-addon1" id="lon" value="116.471266">
+        </div>
+        <button type="button" class="btn btn-lg btn-primary" onclick="opennav()">导航</button>
+        <button type="button" class="btn btn-lg btn-primary" onclick="viewmap()">标注</button>
+        <button type="button" class="btn btn-lg btn-primary" onclick="getLocation()">当前gps</button>
+
+
+    </div>
+
+
+    <!-- Modal -->
+    <div class="modal fade" id="modawx" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">警告</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>此工具不能在微信中正常使用，请在系统浏览器中打开</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <script>
+        function customClickEvent() {
+            var clickEvt;
+            if (window.CustomEvent) {
+                clickEvt = new window.CustomEvent('click', {
+                    canBubble: true,
+                    cancelable: true
+                });
+            } else {
+                clickEvt = document.createEvent('Event');
+                clickEvt.initEvent('click', true, true);
+            }
+
+            return clickEvt;
+        }
+
+
+        function opennav() {//导航
+            var lat = document.getElementById("lat").value.trim();
+            var lon = document.getElementById("lon").value.trim();
+            if (lat == null || lat == undefined || lat == '' || lon == null || lon == undefined || lon == '') {
+                alert("请输入经纬度")
+                return
+            }
+            var ioslink = "iosamap://navi?sourceApplication=applicationName&poiname=目的地&lat=" + lat + "&lon=" + lon + "&dev=1&style=2";
+            var androidlink = "androidamap://navi?sourceApplication=appname&poiname=我在飞&lat=" + lat + "&lon=" + lon + "&dev=1&style=2"
+            // window.location.href = intentUrl;
+            var u = navigator.userAgent;
+            var isAndroid = u.indexOf('Android') > -1 || u.indexOf('Adr') > -1; //android终端
+            var isiOS = !!u.match(/\(i[^;]+;( U;)? CPU.+Mac OS X/); //ios终端
+            if (isiOS) {
+                window.location.href = ioslink;
+            } else if (isAndroid) {
+                window.location.href = androidlink;
+            } else {
+                alert("只支付移动端");
+            }
+        }
+
+        function viewmap() {//标注
+            var lat = document.getElementById("lat").value.trim();
+            var lon = document.getElementById("lon").value.trim();
+            if (lat == null || lat == undefined || lat == '' || lon == null || lon == undefined || lon == '') {
+                alert("请输入经纬度")
+                return
+            }
+            var ioslink = "iosamap://viewMap?sourceApplication=applicationName&poiname=目的地&lat=" + lat + "&lon=" + lon + "&dev=1";
+            var androidlink = "androidamap://viewMap?sourceApplication=appname&poiname=我在飞&lat=" + lat + "&lon=" + lon + "&dev=1&style=2"
+            // window.location.href = intentUrl;
+            var u = navigator.userAgent;
+            var isAndroid = u.indexOf('Android') > -1 || u.indexOf('Adr') > -1; //android终端
+            var isiOS = !!u.match(/\(i[^;]+;( U;)? CPU.+Mac OS X/); //ios终端
+            if (isiOS) {
+                window.location.href = ioslink;
+            } else if (isAndroid) {
+                window.location.href = androidlink;
+            } else {
+                alert("只支付移动端");
+            }
+        }
+
+
+        function getLocation() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(showPosition), { enableHighAccuracy: true, timeout: 200000, maximumAge: 0 };
+            }
+            else {
+                alert("该浏览器不支持获取地理位置");
+            }
+        }
+
+        function showPosition(position) {
+            document.getElementById("lat").value = position.coords.latitude;
+            document.getElementById("lon").value = position.coords.longitude;
+            alert("获取成功")
+        }
+
+        var ua = navigator.userAgent.toLowerCase();
+        if (ua.match(/MicroMessenger/i) == "micromessenger") {
+            var myModal = new bootstrap.Modal(document.getElementById("modawx"), {});
+            document.onreadystatechange = function () {
+                myModal.show();
+            };
+        }
+
+        //https://www.pgc.umn.edu/apps/convert/
+        // Accepts [lon,lat]
+        // Returns [[lon_deg,lon_min,lon_dir],[lat_deg,lat_min,lat_dir]]
+        var dd2ddm = function (xy) {
+            var coords = [];
+
+            for (i = 0; i < xy.length; i++) {
+                var arr = [1, 0, 1];
+                var spl = xy[i].toString().split('.');
+                arr[0] = Math.abs(xy[i].toString().split('.')[0]);
+                arr[1] = spl.length == 2 ? Math.abs(parseFloat('.' + xy[i].toString().split('.')[1]) * 60.0) : 0;
+                arr[2] = xy[i] >= 0 ? 1 : -1;
+
+                coords[i] = arr;
+            }
+
+            return coords;
+        }
+        //https://www.pgc.umn.edu/apps/convert/
+        // Accepts [lon,lat]
+        // Returns [[lon_deg,lon_min,lon_sec,lon_dir],[lat_deg,lat_min,lat_sec,lat_dir]]
+        var dd2dms = function (xy) {
+            var coords = [];
+            for (i = 0; i < xy.length; i++) {
+                var arr = [1, 0, 0, 1];
+                var spl_deg = xy[i].toString().split('.'); //array
+                arr[0] = Math.abs(spl_deg[0]);
+                if (spl_deg.length == 2) {
+                    var val_min = Math.abs(parseFloat('.' + spl_deg[1]) * 60.0);
+                    var spl_min = val_min.toString().split('.');
+                    arr[1] = Math.abs(spl_min[0]);
+                    arr[2] = spl_min.length == 2 ? Math.abs(parseFloat('.' + spl_min[1]) * 60.0) : 0;
+                }
+                arr[3] = xy[i] >= 0 ? 1 : -1;
+                coords[i] = arr;
+            }
+            return coords;
+        }
+        //https://www.pgc.umn.edu/apps/convert/
+        // Accepts [[lon_deg,lon_min,lon_dir],[lat_deg,lat_min,lat_dir]]
+        // Returns [lon,lat]
+        var ddm2dd = function (arr) {
+            var coords = [];
+
+            for (i = 0; i < arr.length; i++) {
+                var deg = parseFloat(arr[i][0]),
+                    min = parseFloat(arr[i][1]),
+                    dir = parseFloat(arr[i][2]);
+
+                coords[i] = dir * (deg + (min / 60.0));
+            }
+            return coords;
+        };
+
+        var dms2dd = function (arr) {
+            var coords = [];
+
+            for (i = 0; i < arr.length; i++) {
+                var deg = parseFloat(arr[i][0]),
+                    min = parseFloat(arr[i][1]),
+                    sec = parseFloat(arr[i][2]),
+                    dir = parseFloat(arr[i][3]);
+
+                coords[i] = dir * (deg + (min / 60.0) + (sec / 3600.0));
+            }
+            return coords;
+        };
+
+    </script>
+
+
+
+</body>
+
+</html>
